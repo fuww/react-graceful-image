@@ -11,6 +11,11 @@ function registerListener(event, fn) {
 }
 
 function isInViewport(el) {
+  // There is no point on adding the calculations
+  // if there is no element
+  if (!el) {
+    return;
+  }
   const rect = el.getBoundingClientRect();
   return (
     rect.top >= 0 &&
