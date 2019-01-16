@@ -33,31 +33,26 @@ const fadeIn = `
   }
 `;
 
-const IS_SVG_SUPPORTED = document.implementation.hasFeature(
-  "http://www.w3.org/TR/SVG11/feature#Image",
-  "1.1"
-);
+const isServerSide = typeof window === 'undefined';
 
 class GracefulImage extends Component {
   constructor(props) {
     super(props);
     let placeholder = null;
 
-    if (IS_SVG_SUPPORTED) {
-      const width =
-        this.props.style && this.props.style.width
-          ? this.props.style.width
-          : this.props.width ? this.props.width : "200";
-      const height =
-        this.props.style && this.props.style.height
-          ? this.props.style.height
-          : this.props.height ? this.props.height : "150";
-      placeholder =
-        "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'{{w}}' height%3D'{{h}}' viewBox%3D'0 0 {{w}} {{h}}'%2F%3E";
-      placeholder = placeholder
-        .replace(/{{w}}/g, width)
-        .replace(/{{h}}/g, height);
-    }
+    const width =
+      this.props.style && this.props.style.width
+        ? this.props.style.width
+        : this.props.width ? this.props.width : "200";
+    const height =
+      this.props.style && this.props.style.height
+        ? this.props.style.height
+        : this.props.height ? this.props.height : "150";
+    placeholder =
+      "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'{{w}}' height%3D'{{h}}' viewBox%3D'0 0 {{w}} {{h}}'%2F%3E";
+    placeholder = placeholder
+      .replace(/{{w}}/g, width)
+      .replace(/{{h}}/g, height);
 
     // store a reference to the throttled function
     this.throttledFunction = throttle(this.lazyLoad, 150);
@@ -117,7 +112,7 @@ class GracefulImage extends Component {
     this.addAnimationStyles();
 
     // if user wants to lazy load
-    if (!this.props.noLazyLoad && IS_SVG_SUPPORTED) {
+    if (!this.props.noLazyLoad) {
       // check if already within viewport to avoid attaching listeners
       if (isInViewport(this.placeholderImage)) {
         this.loadImage();
@@ -190,10 +185,11 @@ class GracefulImage extends Component {
     - Else render the placeholder
   */
   render() {
-    if (!this.state.loaded && (this.props.noPlaceholder || !IS_SVG_SUPPORTED))
+    if (!isServerSide && !this.state.loaded && this.props.noPlaceholder)
       return null;
 
-    const src = this.state.loaded ? this.props.src : this.state.placeholder;
+    const src = (isServerSide || this.state.loaded) ? this.props.src : this.state.placeholder;
+
     const style = this.state.loaded
       ? {
           animationName: "gracefulimage",
