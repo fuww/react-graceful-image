@@ -6,6 +6,25 @@ import GracefulImage from "../src";
 
 Enzyme.configure({ adapter: new Adapter() });
 
+let imageOnload = null;
+
+// Mocking Image.prototype to call the onload
+const mockImage = (event) => {
+  Object.defineProperty(Image.prototype, event, {
+    get: function () {
+      return this._onload;
+    },
+    set: function (fn) {
+      imageOnload = fn;
+      this._onload = fn;
+    },
+    // Properties defined through Object.defineProperty() are, by default,
+    //  non-configurable. To allow them to be redefined, or reconfigured,
+    //  they have to be defined with this attribute set to true.
+    configurable: true
+  });
+}
+
 describe("react-graceful-image", () => {
   it("should render without error", () => {
     const props = {
@@ -143,5 +162,42 @@ describe("react-graceful-image", () => {
 
     expect(spy).toHaveBeenCalledTimes(0);
     spy.mockClear();
+  });
+
+  it("should not call the on load image event when component is unmounted", () => {
+    mockImage('onload');
+    const props = {
+      src: "https://linasmickevicius.com/images/browser.png",
+      width: "150",
+      height: "150",
+    };
+
+    const component = mount(<GracefulImage {...props} />);
+    const instance = component.instance();
+    instance.image.onload = jest.fn();
+    imageOnload();
+    expect(instance.image.onload).toHaveBeenCalledTimes(1);
+    component.unmount();
+    // This function triggers the onload event listener
+    // placed on the Component
+    imageOnload();
+    expect(instance.image).toBe(undefined);
+    expect(component.exists()).toBe(false);
+  });
+
+  it('should try to reload the image when there is an error', () => {
+    mockImage('onerror');
+    const props = {
+      src: "this image is broken",
+      width: "150",
+      height: "150",
+    };
+
+    const component = mount(<GracefulImage {...props} />);
+    const instance = component.instance();
+    instance.image.onerror = jest.fn();
+    imageOnload();
+    expect(instance.image.onerror).toHaveBeenCalledTimes(1);
+    expect(component.state('retryCount')).toBe(1);
   });
 });

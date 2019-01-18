@@ -83,14 +83,15 @@ class GracefulImage extends Component {
     Attempts to download an image, and tracks its success / failure
   */
   loadImage() {
-    const image = new Image();
-    image.onload = () => {
+    this.image = new Image();
+    this.image.onload = () => {
       this.setState({ loaded: true });
+      return;
     };
-    image.onerror = () => {
-      this.handleImageRetries(image);
+    this.image.onerror = () => {
+      this.handleImageRetries(this.image);
     };
-    image.src = this.props.src;
+    this.image.src = this.props.src;
   }
 
   /*
@@ -143,6 +144,7 @@ class GracefulImage extends Component {
       window.clearTimeout(this.timeout);
     }
     this.clearEventListeners();
+    this.destroyImage();
   }
 
   /*
@@ -177,6 +179,18 @@ class GracefulImage extends Component {
         }, this.state.retryDelay * 1000);
       }
     });
+  }
+
+  /*
+    Removes any pending image when component is unmounted
+  */
+  destroyImage() {
+    if (!this.image) {
+      return;
+    }
+    this.image.onload = () => {};
+    this.image.onerror = () => {};
+    delete this.image;
   }
 
   /*
