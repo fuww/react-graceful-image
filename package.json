@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
-    "test:watch": "jest --watch",
+    "test:watch": "CRASH_ON_UNHANDLED_REJECTION=true jest --watch",
     "build": "webpack",
     "start": "webpack-dev-server --open"
   },
@@ -48,6 +48,7 @@
     "react-placeholder"
   ],
   "jest": {
-    "testURL": "http://localhost"
+    "testURL": "http://localhost",
+    "setupTestFrameworkScriptFile": "<rootDir>/jest.setup.js"
   }
 }
