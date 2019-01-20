@@ -1,0 +1,51 @@
+stages:
+  - test
+  - build
+  - deploy
+
+coverage:
+  image: node:10-alpine
+  except:
+    - triggers
+  stage: test
+  script:
+    - npm install
+    - npm run test -- --coverage
+  cache:
+    key: "$CI_BUILD_NAME"
+    paths:
+      - node_modules/
+  tags:
+    - docker
+
+build:
+  image: node:10-alpine
+  stage: build
+  artifacts:
+    paths:
+      - react-graceful-image-*.tgz
+  cache:
+    key: "$CI_BUILD_NAME"
+    paths:
+      - node_modules/
+  before_script:
+    - npm install
+  script:
+    - NODE_ENV=production npm run build
+    - npm pack
+
+deploy:
+  image: google/cloud-sdk:alpine
+  stage: deploy
+  dependencies:
+    - build
+  before_script:
+    - |
+      # log in
+      cat > gcloud-service-key.json <<EOF
+      $GOOGLE_CLOUD_SERVICE_KEY
+      EOF
+      gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud config set project "$GOOGLE_CLOUD_PROJECT_ID"
+  script:
+    - gsutil cp react-graceful-image-*.tgz "gs://react-graceful-image/$CI_COMMIT_REF_NAME/$CI_COMMIT_SHA/"
