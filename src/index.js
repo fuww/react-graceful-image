@@ -38,8 +38,6 @@ const isServerSide = typeof window === 'undefined';
 class GracefulImage extends Component {
   constructor(props) {
     super(props);
-    let placeholder = null;
-
     const width =
       this.props.style && this.props.style.width
         ? this.props.style.width
@@ -48,11 +46,8 @@ class GracefulImage extends Component {
       this.props.style && this.props.style.height
         ? this.props.style.height
         : this.props.height ? this.props.height : "150";
-    placeholder =
-      "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'{{w}}' height%3D'{{h}}' viewBox%3D'0 0 {{w}} {{h}}'%2F%3E";
-    placeholder = placeholder
-      .replace(/{{w}}/g, width)
-      .replace(/{{h}}/g, height);
+    const placeholder =
+      `data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'${width}' height%3D'${height}' viewBox%3D'0 0 ${width} ${height}'%2F%3E`;
 
     // store a reference to the throttled function
     this.throttledFunction = throttle(this.lazyLoad, 150);
