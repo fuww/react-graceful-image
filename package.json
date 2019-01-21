@@ -49,6 +49,17 @@
   ],
   "jest": {
     "testURL": "http://localhost",
-    "setupTestFrameworkScriptFile": "<rootDir>/jest.setup.js"
+    "setupTestFrameworkScriptFile": "<rootDir>/jest.setup.js",
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 66,
+        "functions": 60,
+        "lines": 70,
+        "statements": 70
+      }
+    }
   }
 }
